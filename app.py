@@ -1,39 +1,57 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
+import requests
 
-# Настройка заголовка страницы
-st.title('Моё первое Streamlit приложение')
+# Заголовок
+st.title("Индивидуальный план развития ученика")
 
-# Добавление текста
-st.write('Привет! Это простой пример приложения Streamlit.')
+# Форма для ввода данных
+with st.form("student_form"):
+    name = st.text_input("ФИО ученика")
+    student_class = st.text_input("Класс")
+    subject = st.selectbox("Предмет", ["Математика", "Физика", "Химия", "Биология", "Английский язык"])
+    grade = st.number_input("Оценка (по 5-балльной шкале)", min_value=1, max_value=5, step=1)
+    submit_button = st.form_submit_button("Создать таблицу")
 
-# Создание боковой панели
-st.sidebar.header('Настройки')
-user_input = st.sidebar.text_input('Введите ваше имя', 'Гость')
-st.write(f'Привет, {user_input}!')
+if submit_button and name and student_class and subject:
+    # Создание таблицы с бинарными показателями
+    columns = ["Понимание темы", "Применение знаний", "Анализ", "Критическое мышление", "Творческое решение"]
+    df = pd.DataFrame([[0] * len(columns)], columns=columns)
+    df_editor = st.data_editor(df, num_rows="fixed")
+    
+    if st.button("Отправить данные в AI"):
+        data = {
+            "name": name,
+            "class": student_class,
+            "subject": subject,
+            "grade": grade,
+            "results": df_editor.to_dict(orient="records")[0]
+        }
+        
+        # Отправка данных в API
+        response = requests.post("https://your-api-endpoint.com/generate_plan", json=data)
+        
+        if response.status_code == 200:
+            plan_url = response.json().get("plan_url")
+            st.success("План успешно создан!")
+            st.markdown(f"[Скачать план]({plan_url})")
+        else:
+            st.error("Ошибка при генерации плана")
 
-# Создание графика
-chart_data = pd.DataFrame(
-    np.random.randn(20, 3),
-    columns=['A', 'B', 'C']
-)
-st.line_chart(chart_data)
+# Дополнительный функционал: отображение предыдущих планов
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-# Добавление виджетов
-if st.checkbox('Показать датафрейм'):
-    st.write(chart_data)
+if plan_url:
+    st.session_state.history.append({
+        "ФИО": name,
+        "Класс": student_class,
+        "Предмет": subject,
+        "Оценка": grade,
+        "Ссылка": plan_url
+    })
 
-# Добавление селектора
-option = st.selectbox(
-    'Выберите число',
-    [1, 2, 3, 4, 5]
-)
-st.write(f'Вы выбрали: {option}')
-
-# Добавление слайдера
-values = st.slider(
-    'Выберите диапазон',
-    0.0, 100.0, (25.0, 75.0)
-)
-st.write(f'Значения: {values}')
+if st.session_state.history:
+    st.subheader("История созданных планов")
+    history_df = pd.DataFrame(st.session_state.history)
+    st.dataframe(history_df)
