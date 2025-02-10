@@ -9,34 +9,43 @@ def send_file_to_api(file, prompt):
     api_url = "https://api.openai.com/v1/chat/completions"  # Укажите ваш API-адрес
     api_key = "YOUR_API_KEY"  # Замените на ваш API-ключ
 
+    if api_key == "YOUR_API_KEY":
+        return "Ошибка: API-ключ не установлен!"
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
-    # Читаем содержимое файла
-    file_content = file.getvalue()
+    try:
+        # Читаем содержимое файла
+        file_content = file.getvalue()
 
-    # Преобразуем Excel в DataFrame
-    df = pd.read_excel(io.BytesIO(file_content))
+        # Преобразуем Excel в DataFrame
+        df = pd.read_excel(io.BytesIO(file_content))
 
-    # Преобразуем DataFrame в JSON-строку
-    file_data = df.to_json(orient="records")
+        # Преобразуем DataFrame в JSON-строку
+        file_data = df.to_json(orient="records")
 
-    # Формируем промпт
-    final_prompt = f"{prompt}\n\nДанные из файла:\n{file_data}"
+        # Формируем промпт
+        final_prompt = f"{prompt}\n\nДанные из файла:\n{file_data}"
 
-    payload = {
-        "model": "gpt-4",
-        "messages": [{"role": "user", "content": final_prompt}]
-    }
+        payload = {
+            "model": "gpt-4",
+            "messages": [{"role": "user", "content": final_prompt}]
+        }
 
-    response = requests.post(api_url, json=payload, headers=headers)
+        response = requests.post(api_url, json=payload, headers=headers)
+        
+        if response.status_code == 200:
+            return response.json()["choices"][0]["message"]["content"]
+        else:
+            return f"Ошибка API: {response.status_code}, {response.text}"
     
-    if response.status_code == 200:
-        return response.json()["choices"][0]["message"]["content"]
-    else:
-        return f"Ошибка: {response.status_code}, {response.text}"
+    except requests.exceptions.RequestException as e:
+        return f"Ошибка сети: {e}"
+    except Exception as e:
+        return f"Ошибка обработки данных: {e}"
 
 # Функция для создания DOCX-файла
 def create_docx(student_name, student_class, subject, grade, gpt_response):
@@ -72,47 +81,8 @@ def set_background(image_url):
     st.markdown(page_bg, unsafe_allow_html=True)
 
 # Укажите ссылку на фоновое изображение
-background_image_url = "https://images.pexels.com/photos/30388784/pexels-photo-30388784.jpeg?auto=compress&cs=tinysrgb&w=1200&lazy=load"  # Можно заменить на свое изображение
+background_image_url = "https://images.pexels.com/photos/30388784/pexels-photo-30388784.jpeg?auto=compress&cs=tinysrgb&w=1200&lazy=load"
 set_background(background_image_url)
 
 # Заголовок
-st.title("Индивидуальный план развития ученика Quantum STEM School")
-
-# Форма для ввода данных
-with st.form("student_form"):
-    name = st.text_input("ФИО ученика")
-    student_class = st.text_input("Класс")
-    subject = st.selectbox("Предмет", ["Математика", "Физика", "Химия", "Биология", "Английский язык"])
-    
-    # Исправленный number_input
-    grade = st.number_input("Текущая оценка из EduPage, округленная до целых", min_value=0, max_value=100, step=1, value=0)
-
-    uploaded_file = st.file_uploader("Загрузите Excel-файл с ожидаемыми результатами", type=["xls", "xlsx"])
-    
-    # Добавление кнопки отправки
-    submit_button = st.form_submit_button("Сформировать ПИР")
-
-if submit_button:
-    st.success("Форма успешно отправлена!")
-
-if submit_button and uploaded_file is not None:
-    st.write("Файл успешно загружен, отправляется на анализ...")
-
-    # Промпт для ChatGPT
-    prompt = "Проанализируй файл, выяви сильные и слабые стороны, напиши рекомендации."
-
-    # Отправка файла в API и получение ответа
-    api_response = send_file_to_api(uploaded_file, prompt)
-
-    # Создание DOCX-файла
-    doc_buffer = create_docx(name, student_class, subject, grade, api_response)
-
-    # Кнопка для скачивания файла
-    st.download_button(
-        label="📄 Скачать отчет (DOCX)",
-        data=doc_buffer,
-        file_name=f"ИПР_{name}.docx",
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    )
-
-    st.success("Отчет сформирован! Вы можете скачать его.")
+st.title("Индивидуальный план развития ученика Quantum STEM Sch
