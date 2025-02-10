@@ -13,7 +13,7 @@ with st.form("student_form"):
     subject = st.selectbox("Предмет", ["Математика", "Физика", "Химия", "Биология", "Английский язык"])
     grade = st.number_input("Оценка (по 100-балльной шкале)", min_value=1, max_value=5, step=1)
     uploaded_file = st.file_uploader("Загрузите Excel-файл", type=["xls", "xlsx"])
-    submit_button = st.form_submit_button("Отправить файл в ChatGPT")
+    submit_button = st.form_submit_button("Сформировать ПИР")
 
 # Функция для отправки файла по API
 def send_file_to_api(file, prompt):
