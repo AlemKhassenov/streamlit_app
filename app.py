@@ -11,8 +11,8 @@ with st.form("student_form"):
     name = st.text_input("ФИО ученика")
     student_class = st.text_input("Класс")
     subject = st.selectbox("Предмет", ["Математика", "Физика", "Химия", "Биология", "Английский язык"])
-    grade = st.number_input("Оценка (по 100-балльной шкале)", min_value=1, max_value=100, step=0.01)
-    uploaded_file = st.file_uploader("Загрузите ожидаемые результаты", type=["xls", "xlsx"])
+    grade = st.number_input("Оценка (по 100-балльной шкале)", min_value=1, max_value=100, step=0.1)
+    uploaded_file = st.file_uploader("Загрузите файл", type=["xls", "xlsx"])
     submit_button = st.form_submit_button("Сформировать ПИР")
 
 # Функция для отправки файла по API
