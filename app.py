@@ -13,7 +13,7 @@ def set_background(image_url):
     st.markdown(page_bg, unsafe_allow_html=True)
 
 # Укажите ссылку на фоновое изображение
-background_image_url = "https://images.unsplash.com/photo-1506784983877-45594efa4cbe"  # Можно заменить на свое изображение
+background_image_url = "https://unsplash.com/photos/a-black-background-with-a-green-and-yellow-line-aCpV2CB-Llw"  # Можно заменить на свое изображение
 set_background(background_image_url)
 
 # Заголовок
