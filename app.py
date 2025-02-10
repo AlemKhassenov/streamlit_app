@@ -1,5 +1,22 @@
 import streamlit as st
 
+# Функция для установки фонового изображения
+def set_background(image_url):
+    page_bg = f"""
+    <style>
+    .stApp {{
+        background: url("{image_url}") no-repeat center center fixed;
+        background-size: cover;
+    }}
+    </style>
+    """
+    st.markdown(page_bg, unsafe_allow_html=True)
+
+# Укажите ссылку на фоновое изображение
+background_image_url = "https://images.unsplash.com/photo-1506784983877-45594efa4cbe"  # Можно заменить на свое изображение
+set_background(background_image_url)
+
+# Заголовок
 st.title("Индивидуальный план развития ученика")
 
 # Форма для ввода данных
