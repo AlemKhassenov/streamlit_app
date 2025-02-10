@@ -15,31 +15,50 @@ with st.form("student_form"):
     uploaded_file = st.file_uploader("Загрузите Excel-файл", type=["xls", "xlsx"])
     submit_button = st.form_submit_button("Отправить файл в ChatGPT")
 
-        
-        # Отправка данных в API
-        response = requests.post("https://your-api-endpoint.com/generate_plan", json=data)
-        
-        if response.status_code == 200:
-            plan_url = response.json().get("plan_url")
-            st.success("План успешно создан!")
-            st.markdown(f"[Скачать план]({plan_url})")
-        else:
-            st.error("Ошибка при генерации плана")
+# Функция для отправки файла по API
+def send_file_to_api(file, prompt):
+    api_url = "https://api.openai.com/v1/chat/completions"  # Укажите ваш API-адрес
+    api_key = "YOUR_API_KEY"  # Замените на ваш API-ключ
 
-# Дополнительный функционал: отображение предыдущих планов
-if "history" not in st.session_state:
-    st.session_state.history = []
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
 
-if plan_url:
-    st.session_state.history.append({
-        "ФИО": name,
-        "Класс": student_class,
-        "Предмет": subject,
-        "Оценка": grade,
-        "Ссылка": plan_url
-    })
+    # Читаем содержимое файла
+    file_content = file.getvalue()
 
-if st.session_state.history:
-    st.subheader("История созданных планов")
-    history_df = pd.DataFrame(st.session_state.history)
-    st.dataframe(history_df)
+    # Преобразуем Excel в DataFrame
+    df = pd.read_excel(io.BytesIO(file_content))
+
+    # Преобразуем DataFrame в JSON-строку
+    file_data = df.to_json(orient="records")
+
+    # Формируем промпт
+    final_prompt = f"{prompt}\n\nДанные из файла:\n{file_data}"
+
+    payload = {
+        "model": "gpt-4",
+        "messages": [{"role": "user", "content": final_prompt}]
+    }
+
+    response = requests.post(api_url, json=payload, headers=headers)
+    
+    if response.status_code == 200:
+        return response.json()["choices"][0]["message"]["content"]
+    else:
+        return f"Ошибка: {response.status_code}, {response.text}"
+
+# Если пользователь загрузил файл и нажал кнопку
+if submit_button and uploaded_file is not None:
+    st.write("Файл успешно загружен и отправляется на обработку...")
+    
+    # Пример промпта (можно изменить на свой)
+    prompt = "Проанализируйте данные из Excel-файла и сформируйте индивидуальный план развития ученика."
+    
+    # Отправка файла в API и получение ответа
+    api_response = send_file_to_api(uploaded_file, prompt)
+    
+    # Вывод ответа
+    st.subheader("Ответ от ChatGPT:")
+    st.write(api_response)
