@@ -9,7 +9,7 @@ with st.form("student_form"):
     subject = st.selectbox("Предмет", ["Математика", "Физика", "Химия", "Биология", "Английский язык"])
     
     # Исправленный number_input
-    grade = st.number_input("Оценка (по 100-балльной шкале)", min_value=0, max_value=100, step=1, value=0)
+    grade = st.number_input("Текущая оценка из EduPage, округленная до целых", min_value=0, max_value=100, step=1, value=0)
 
     uploaded_file = st.file_uploader("Загрузите Excel-файл с ожидаемыми результатами", type=["xls", "xlsx"])
     
