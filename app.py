@@ -1,9 +1,3 @@
-streamlit
-pandas
-requests
-openpyxl
-python-docx
-
 import streamlit as st
 
 # Функция для установки фонового изображения
