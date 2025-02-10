@@ -85,4 +85,45 @@ background_image_url = "https://images.pexels.com/photos/30388784/pexels-photo-3
 set_background(background_image_url)
 
 # Заголовок
-st.title("Индивидуальный план развития ученика Quantum STEM Sch
+st.title("Индивидуальный план развития ученика Quantum STEM School")
+
+# Форма для ввода данных
+with st.form("student_form"):
+    name = st.text_input("ФИО ученика")
+    student_class = st.text_input("Класс")
+    subject = st.selectbox("Предмет", ["Математика", "Физика", "Химия", "Биология", "Английский язык"])
+    
+    grade = st.number_input("Текущая оценка из EduPage, округленная до целых", min_value=0, max_value=100, step=1, value=0)
+
+    uploaded_file = st.file_uploader("Загрузите Excel-файл с ожидаемыми результатами", type=["xls", "xlsx"])
+    
+    submit_button = st.form_submit_button("Сформировать ПИР")
+
+if submit_button:
+    if uploaded_file is None:
+        st.error("Ошибка: Пожалуйста, загрузите Excel-файл!")
+    else:
+        st.write("Файл успешно загружен, отправляется на анализ...")
+
+        # Промпт для ChatGPT
+        prompt = "Проанализируй файл, выяви сильные и слабые стороны, напиши рекомендации."
+
+        # Отправка файла в API и получение ответа
+        api_response = send_file_to_api(uploaded_file, prompt)
+
+        # Проверка на ошибки в API-ответе
+        if "Ошибка" in api_response:
+            st.error(api_response)
+        else:
+            # Создание DOCX-файла
+            doc_buffer = create_docx(name, student_class, subject, grade, api_response)
+
+            # Кнопка для скачивания файла
+            st.download_button(
+                label="📄 Скачать отчет (DOCX)",
+                data=doc_buffer,
+                file_name=f"ИПР_{name}.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
+
+            st.success("Отчет сформирован! Вы можете скачать его.")
