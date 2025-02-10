@@ -17,7 +17,7 @@ background_image_url = "https://images.pexels.com/photos/30388784/pexels-photo-3
 set_background(background_image_url)
 
 # Заголовок
-st.title("Индивидуальный план развития ученика")
+st.title("Индивидуальный план развития ученика Quantum STEM School")
 
 # Форма для ввода данных
 with st.form("student_form"):
