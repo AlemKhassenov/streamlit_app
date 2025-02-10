@@ -1,3 +1,5 @@
+pip install python-docx
+!pip install python-docx
 import streamlit as st
 import pandas as pd
 import requests
