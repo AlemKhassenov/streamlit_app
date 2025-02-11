@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import requests
 import io
+import docx
 from docx import Document
 
 # Функция для отправки файла через API ChatGPT
