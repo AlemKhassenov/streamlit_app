@@ -2,19 +2,23 @@ import streamlit as st
 import pandas as pd
 import requests
 import io
-import docx
+import os
 from docx import Document
+
+# Загружаем API-ключ из переменной окружения
+API_KEY = os.getenv("OPENAI_API_KEY")
+
+# Проверка API-ключа
+if not API_KEY:
+    st.error("Ошибка: API-ключ не найден. Добавьте его в переменные среды или GitHub Secrets.")
+    st.stop()
 
 # Функция для отправки файла через API ChatGPT
 def send_file_to_api(file, prompt):
-    api_url = "https://api.openai.com/v1/chat/completions"  # Укажите ваш API-адрес
-    api_key = "YOUR_API_KEY"  # Замените на ваш API-ключ
-
-    if api_key == "OPENAI_API_KEY":
-        return "Ошибка: API-ключ не установлен!"
+    api_url = "https://api.openai.com/v1/chat/completions"
 
     headers = {
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
     }
 
@@ -33,7 +37,9 @@ def send_file_to_api(file, prompt):
 
         payload = {
             "model": "gpt-4",
-            "messages": [{"role": "user", "content": final_prompt}]
+            "messages": [{"role": "user", "content": final_prompt}],
+            "max_tokens": 1000,
+            "temperature": 0.7
         }
 
         response = requests.post(api_url, json=payload, headers=headers)
@@ -128,4 +134,3 @@ if submit_button:
             )
 
             st.success("Отчет сформирован! Вы можете скачать его.")
-
