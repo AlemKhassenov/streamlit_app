@@ -147,7 +147,7 @@ if submit_button:
             st.download_button(
                 label="📄 Скачать отчет (DOCX)",
                 data=doc_buffer,
-                file_name=f"ИПР_{name}.docx",
+                file_name=f"ПИР_{name}_{grade}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
 
