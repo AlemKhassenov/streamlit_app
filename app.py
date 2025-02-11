@@ -8,7 +8,7 @@ from docx import Document
 # Функция для отправки файла через API ChatGPT
 def send_file_to_api(file, prompt):
     api_url = "https://api.openai.com/v1/chat/completions"  # Укажите ваш API-адрес
-    api_key = "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"  # Замените на ваш API-ключ
+    api_key = "A"  # Замените на ваш API-ключ
 
     if api_key == "YOUR_API_KEY":
         return "Ошибка: API-ключ не установлен!"
