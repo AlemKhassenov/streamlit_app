@@ -1,1 +1,6 @@
 python-docx
+streamlit
+pandas
+requests
+openpyxl
+python-docx
