@@ -1,5 +1,5 @@
 import streamlit as st
-
+%pip install python-docx
 # Функция для установки фонового изображения
 def set_background(image_url):
     page_bg = f"""
