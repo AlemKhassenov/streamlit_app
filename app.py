@@ -10,7 +10,7 @@ def send_file_to_api(file, prompt):
     api_url = "https://api.openai.com/v1/chat/completions"  # Укажите ваш API-адрес
     api_key = "YOUR_API_KEY"  # Замените на ваш API-ключ
 
-    if api_key == "YOUR_API_KEY":
+    if api_key == "OPENAI_API_KEY":
         return "Ошибка: API-ключ не установлен!"
 
     headers = {
