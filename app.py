@@ -30,20 +30,17 @@ def load_data_from_google_sheets(student_name):
             if fio_column:
                 df[fio_column] = df[fio_column].fillna('').astype(str).str.strip()
                 
-                # Вывод всех значений ФИО в таблице для диагностики
-                st.write(f"ФИО из вкладки {sheet_name}:", df[fio_column].tolist())
-                
                 student_data = df[df[fio_column] == student_name.strip()]
                 
                 if not student_data.empty:
-                    # Формируем словарь с названиями столбцов и значениями из найденной строки
-                    student_info = student_data.to_dict(orient='records')[0]
+                    # Формируем словарь, исключая сам столбец ФИО
+                    student_info = student_data.drop(columns=[fio_column]).to_dict(orient='records')[0]
                     student_data_list.append(student_info)
         
         if not student_data_list:
             return None
         
-        return student_data_list[0]  # Возвращаем первую найденную строку как словарь
+        return student_data_list[0]  # Возвращаем первую найденную строку как словарь без ФИО
     except Exception as e:
         st.error(f"Ошибка при загрузке данных из Google Sheets: {e}")
         return None
