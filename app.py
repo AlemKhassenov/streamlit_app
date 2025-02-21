@@ -175,6 +175,6 @@ if submit_button:
         if "Ошибка" in api_response:
             st.error(api_response)
         else:
-            doc_buffer = create_docx(name, student_class, subject, grade, api_response)
+            doc_buffer = create_docx(student_name, student_class, subject, grade, api_response)
             st.download_button("📄 Скачать отчет (DOCX)", data=doc_buffer, file_name=f"ПИР_{name}_{grade}.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
             st.success("Отчет сформирован! Вы можете скачать его.")
