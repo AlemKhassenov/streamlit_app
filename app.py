@@ -13,8 +13,23 @@ if not API_KEY:
     st.error("Ошибка: API-ключ не найден. Добавьте его в переменные среды или GitHub Secrets.")
     st.stop()
 
-# Функция для отправки файла через API ChatGPT
-def send_file_to_api(file, prompt):
+# Функция для загрузки данных из Google Sheets
+def load_data_from_google_sheets(sheet_url, student_name):
+    sheet_id = sheet_url.split("/d/")[1].split("/")[0]
+    export_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+    
+    df = pd.read_csv(export_url)
+    
+    student_data = df[df['ФИО'] == student_name]
+    
+    if student_data.empty:
+        return None
+    
+    student_data_json = student_data.to_json(orient="records")
+    return student_data_json
+
+# Функция для отправки данных через API ChatGPT
+def send_data_to_api(student_data, prompt):
     api_url = "https://api.openai.com/v1/chat/completions"
 
     headers = {
@@ -22,32 +37,21 @@ def send_file_to_api(file, prompt):
         "Content-Type": "application/json"
     }
 
-    try:
-        # Читаем содержимое файла
-        file_content = file.getvalue()
+    final_prompt = f"{prompt}\n\nДанные ученика:\n{student_data}"
 
-        # Преобразуем Excel в DataFrame
-        df = pd.read_excel(io.BytesIO(file_content))
+    payload = {
+        "model": "gpt-4",
+        "messages": [{"role": "user", "content": final_prompt}],
+        "max_tokens": 1000,
+        "temperature": 0.7
+    }
 
-        # Преобразуем DataFrame в JSON-строку
-        file_data = df.to_json(orient="records")
-
-        # Формируем промпт
-        final_prompt = f"{prompt}\n\nДанные из файла:\n{file_data}"
-
-        payload = {
-            "model": "gpt-4",
-            "messages": [{"role": "user", "content": final_prompt}],
-            "max_tokens": 1000,
-            "temperature": 0.7
-        }
-
-        response = requests.post(api_url, json=payload, headers=headers)
-        
-        if response.status_code == 200:
-            return response.json()["choices"][0]["message"]["content"]
-        else:
-            return f"Ошибка API: {response.status_code}, {response.text}"
+    response = requests.post(api_url, json=payload, headers=headers)
+    
+    if response.status_code == 200:
+        return response.json()["choices"][0]["message"]["content"]
+    else:
+        return f"Ошибка API: {response.status_code}, {response.text}"
     
     except requests.exceptions.RequestException as e:
         return f"Ошибка сети: {e}"
