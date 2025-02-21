@@ -13,18 +13,31 @@ if not API_KEY:
     st.error("Ошибка: API-ключ не найден. Добавьте его в переменные среды или GitHub Secrets.")
     st.stop()
 
-# Функция для загрузки данных из Google Sheets
 def load_data_from_google_sheets(sheet_url, student_name):
     export_url = "https://docs.google.com/spreadsheets/d/1BeXPi5LRSIj0xDjGZjey0VfBU08mnjJm/export?format=csv"
+    
     df = pd.read_csv(export_url)
     
-    student_data = df[df['ФИО'] == student_name]
+    # Выводим названия всех столбцов, чтобы понять, как записан "ФИО"
+    st.write("Названия столбцов в Google Sheets:", df.columns.tolist())
+
+    # Попробуем исправить возможные ошибки в названии столбца
+    df.columns = df.columns.str.strip()  # Убираем пробелы в начале и конце
+    df.columns = df.columns.str.replace("\t", "")  # Убираем табуляции
+
+    # Проверим правильное название
+    if "ФИО" not in df.columns:
+        st.error("Ошибка: В таблице нет столбца 'ФИО'. Проверьте названия столбцов.")
+        return None
+
+    student_data = df[df["ФИО"] == student_name]
     
     if student_data.empty:
         return None
     
     student_data_json = student_data.to_json(orient="records")
     return student_data_json
+
 
 # Функция для отправки данных через API ChatGPT
 def send_data_to_api(student_data, prompt):
