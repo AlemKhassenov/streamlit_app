@@ -21,7 +21,7 @@ def load_data_from_google_sheets(student_name):
         student_data_list = []
         
         for sheet_name in xls.sheet_names:
-            df = pd.read_excel(xls, sheet_name=sheet_name, skiprows=1)  # Пропускаем первую строку
+            df = pd.read_excel(xls, sheet_name=sheet_name)  # Пропускаем первую строку
             df.columns = df.columns.str.strip()
             
             # Вывод списка столбцов для диагностики
