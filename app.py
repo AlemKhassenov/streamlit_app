@@ -97,7 +97,7 @@ st.title("Индивидуальный план развития ученика 
 # Форма для ввода данных
 with st.form("student_form"):
     name = st.text_input("ФИО ученика")
-    student_class = st.text_input("Класс")
+    student_class = st.selectbox("Класс", ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
     subject = st.selectbox("Предмет", ["Математика", "Физика", "Химия", "Биология", "Английский язык"])
     
     grade = st.number_input("Текущая оценка из EduPage, округленная до целых", min_value=0, max_value=100, step=1, value=0)
