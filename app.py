@@ -16,22 +16,30 @@ if not API_KEY:
 # Функция для загрузки данных из Google Sheets
 def load_data_from_google_sheets(student_name):
     try:
-        sheet_url = "https://docs.google.com/spreadsheets/d/1BeXPi5LRSIj0xDjGZjey0VfBU08mnjJm/export?format=csv"
-        df = pd.read_csv(sheet_url)
-        df.columns = df.columns.str.strip()
+        sheet_url = "https://docs.google.com/spreadsheets/d/1BeXPi5LRSIj0xDjGZjey0VfBU08mnjJm/export?format=xlsx"
+        xls = pd.ExcelFile(sheet_url)
+        student_data_list = []
         
-        # Вывод списка столбцов для диагностики
-        st.write("Доступные столбцы в Google Sheets:", df.columns.tolist())
+        for sheet_name in xls.sheet_names:
+            df = pd.read_excel(xls, sheet_name=sheet_name, skiprows=1)  # Пропускаем первую строку
+            df.columns = df.columns.str.strip()
+            
+            # Вывод списка столбцов для диагностики
+            st.write(f"Вкладка: {sheet_name}, столбцы:", df.columns.tolist())
+            
+            # Определяем правильное название столбца с ФИО
+            fio_column = next((col for col in df.columns if "ФИО" in col), None)
+            
+            if fio_column:
+                student_data = df[df[fio_column].str.strip() == student_name.strip()]
+                if not student_data.empty:
+                    student_data_list.append(student_data)
         
-        # Определяем правильное название столбца с ФИО
-        fio_column = next((col for col in df.columns if "ФИО" in col), None)
+        if not student_data_list:
+            return None
         
-        if fio_column:
-            student_data = df[df[fio_column].str.strip() == student_name.strip()]
-            if not student_data.empty:
-                return student_data.to_json(orient="records")
-        
-        return None
+        combined_data = pd.concat(student_data_list)
+        return combined_data.to_json(orient="records")
     except Exception as e:
         st.error(f"Ошибка при загрузке данных из Google Sheets: {e}")
         return None
