@@ -29,6 +29,10 @@ def load_data_from_google_sheets(student_name):
             
             if fio_column:
                 df[fio_column] = df[fio_column].fillna('').astype(str).str.strip()
+                
+                # Вывод всех значений ФИО в таблице для диагностики
+                st.write(f"ФИО из вкладки {sheet_name}:", df[fio_column].tolist())
+                
                 student_data = df[df[fio_column] == student_name.strip()]
                 
                 if not student_data.empty:
