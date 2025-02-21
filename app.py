@@ -15,9 +15,7 @@ if not API_KEY:
 
 # Функция для загрузки данных из Google Sheets
 def load_data_from_google_sheets(sheet_url, student_name):
-    sheet_id = sheet_url.split("/d/")[1].split("/")[0]
-    export_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-    
+    export_url = "https://docs.google.com/spreadsheets/d/1BeXPi5LRSIj0xDjGZjey0VfBU08mnjJm/export?format=csv"
     df = pd.read_csv(export_url)
     
     student_data = df[df['ФИО'] == student_name]
@@ -99,22 +97,18 @@ with st.form("student_form"):
     student_class = st.selectbox("Класс", ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
     subject = st.selectbox("Предмет", ["Математика", "Физика", "Химия", "Биология", "Английский язык"])
     grade = st.number_input("Текущая оценка из EduPage, округленная до целых", min_value=0, max_value=100, step=1, value=0)
-    google_sheets_url = st.text_input("Введите ссылку на Google Sheets")
     submit_button = st.form_submit_button("Сформировать ПИР")
 
 if submit_button:
-    if not google_sheets_url:
-        st.error("Ошибка: Пожалуйста, введите ссылку на Google Sheets!")
+    student_data = load_data_from_google_sheets("https://docs.google.com/spreadsheets/d/1BeXPi5LRSIj0xDjGZjey0VfBU08mnjJm/export?format=csv", name)
+    
+    if student_data is None:
+        st.error("Ошибка: Данные ученика не найдены!")
     else:
-        student_data = load_data_from_google_sheets(google_sheets_url, name)
+        st.write("Данные найдены, отправляются на анализ...")
         
-        if student_data is None:
-            st.error("Ошибка: Данные ученика не найдены!")
-        else:
-            st.write("Данные найдены, отправляются на анализ...")
-            
-            # Промпт для ChatGPT
-            prompt = """
+        # Промпт для ChatGPT
+        prompt = """
 Учащийся проходил обучение по различным темам. В столбцах приведены ожидания от обучения (цели), а в последней строке указано:
 - 1 = ученик достиг цели.
 - 0 = ученик не достиг цели.
@@ -125,19 +119,14 @@ if submit_button:
 - **Ссылки на видео (YouTube, Coursera, Khan Academy и т. д.)**  
 - **Книги / статьи / курсы**  
 
-**Пример вывода:**  
-📌 **Сильные стороны** → Список тем, где ученик получил **1**  
-⚠️ **Зоны для улучшения** → Список тем с **0** + пояснения  
-🎓 **Рекомендации** → Какие материалы помогут исправить пробелы  
-
 Данные для анализа:  
 {student_data}
 """
-            api_response = send_data_to_api(student_data, prompt)
-            
-            if "Ошибка" in api_response:
-                st.error(api_response)
-            else:
-                doc_buffer = create_docx(name, student_class, subject, grade, api_response)
-                st.download_button("📄 Скачать отчет (DOCX)", data=doc_buffer, file_name=f"ПИР_{name}_{grade}.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-                st.success("Отчет сформирован! Вы можете скачать его.")
+        api_response = send_data_to_api(student_data, prompt)
+        
+        if "Ошибка" in api_response:
+            st.error(api_response)
+        else:
+            doc_buffer = create_docx(name, student_class, subject, grade, api_response)
+            st.download_button("📄 Скачать отчет (DOCX)", data=doc_buffer, file_name=f"ПИР_{name}_{grade}.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+            st.success("Отчет сформирован! Вы можете скачать его.")
