@@ -14,13 +14,19 @@ if not API_KEY:
     st.stop()
 
 # Функция для загрузки данных из Google Sheets
-def load_data_from_google_sheets(student_name):
+def load_data_from_google_sheets(student_name, student_class):
     try:
         sheet_url = "https://docs.google.com/spreadsheets/d/1BeXPi5LRSIj0xDjGZjey0VfBU08mnjJm/export?format=xlsx"
         xls = pd.ExcelFile(sheet_url)
         student_data_list = []
         
-        for sheet_name in xls.sheet_names:
+        # Ищем сначала в указанной пользователем вкладке
+        if student_class in xls.sheet_names:
+            sheet_names = [student_class] + [s for s in xls.sheet_names if s != student_class]
+        else:
+            sheet_names = xls.sheet_names
+        
+        for sheet_name in sheet_names:
             df = pd.read_excel(xls, sheet_name=sheet_name)
             df.columns = df.columns.str.strip()
             
@@ -36,6 +42,7 @@ def load_data_from_google_sheets(student_name):
                     # Формируем словарь, исключая сам столбец ФИО
                     student_info = student_data.drop(columns=[fio_column]).to_dict(orient='records')[0]
                     student_data_list.append(student_info)
+                    break  # Если нашли данные, выходим из цикла
         
         if not student_data_list:
             return None
@@ -113,14 +120,14 @@ st.title("Индивидуальный план развития ученика 
 # Форма для ввода данных
 with st.form("student_form"):
     name = st.text_input("ФИО ученика")
-    student_class = st.selectbox("Класс", ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"])
+    student_class = st.selectbox("Класс", ["5А (Final1)", "5 E,F,D(Final1)", "6 A (Final1)", "6 D,E,F,G (Final1)", "7a Final 1", "7e,d,g,f Final 1", "8 A (Final 1)", "8 D,E,F (Final 1)", "9А-В(Final 1)", "9 E, F, G, D(Final)", "10a,d,e,f,g (Final1)", "11a,d,f,e Final1"])
     subject = st.selectbox("Предмет", ["Математика", "Физика", "Химия", "Биология", "Английский язык"])
     grade = st.number_input("Текущая оценка из EduPage, округленная до целых", min_value=0, max_value=100, step=1, value=0)
     submit_button = st.form_submit_button("Сформировать ПИР")
 
 if submit_button:
     st.write("Загрузка данных из Google Sheets...")
-    student_data = load_data_from_google_sheets(name)
+    student_data = load_data_from_google_sheets(name, student_class)
     
     if student_data is None:
         st.error("Ошибка: Данные ученика не найдены! Проверьте ФИО и структуру таблицы.")
@@ -139,7 +146,7 @@ if submit_button:
 - **Книги / статьи / курсы**  
 
 Данные для анализа:  
-{student_data_list}
+{student_data}
 """
         api_response = send_data_to_api(student_data, prompt)
         
