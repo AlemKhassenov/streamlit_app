@@ -149,7 +149,7 @@ if student_class:
 
 if submit_button:
     st.write("Загрузка данных из Google Sheets...")
-    student_data = load_data_from_google_sheets(name, student_class)
+    student_data = load_data_from_google_sheets(student_name, student_class)
     
     if student_data is None:
         st.error("Ошибка: Данные ученика не найдены! Проверьте ФИО и структуру таблицы.")
