@@ -139,7 +139,7 @@ if submit_button:
 - **Книги / статьи / курсы**  
 
 Данные для анализа:  
-{student_data}
+{student_data_list}
 """
         api_response = send_data_to_api(student_data, prompt)
         
