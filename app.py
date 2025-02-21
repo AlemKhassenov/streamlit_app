@@ -21,17 +21,20 @@ def load_data_from_google_sheets(student_name):
         student_data_list = []
         
         for sheet_name in xls.sheet_names:
-            df = pd.read_excel(xls, sheet_name=sheet_name)  # Пропускаем первую строку
+            df = pd.read_excel(xls, sheet_name=sheet_name)
             df.columns = df.columns.str.strip()
             
-            # Вывод списка столбцов для диагностики
+            # Вывод списка столбцов и первых строк для диагностики
             st.write(f"Вкладка: {sheet_name}, столбцы:", df.columns.tolist())
+            st.write("Первые строки данных:")
+            st.write(df.head())
             
             # Определяем правильное название столбца с ФИО
             fio_column = next((col for col in df.columns if "ФИО" in col), None)
             
             if fio_column:
-                student_data = df[df[fio_column].str.strip() == student_name.strip()]
+                df[fio_column] = df[fio_column].fillna('').astype(str).str.strip()
+                student_data = df[df[fio_column] == student_name.strip()]
                 if not student_data.empty:
                     student_data_list.append(student_data)
         
