@@ -13,31 +13,25 @@ if not API_KEY:
     st.error("Ошибка: API-ключ не найден. Добавьте его в переменные среды или GitHub Secrets.")
     st.stop()
 
-def load_data_from_google_sheets(sheet_url, student_name):
-    export_url = "https://docs.google.com/spreadsheets/d/1BeXPi5LRSIj0xDjGZjey0VfBU08mnjJm/export?format=csv"
-    
-    df = pd.read_csv(export_url)
-    
-    # Выводим названия всех столбцов, чтобы понять, как записан "ФИО"
-    st.write("Названия столбцов в Google Sheets:", df.columns.tolist())
-
-    # Попробуем исправить возможные ошибки в названии столбца
-    df.columns = df.columns.str.strip()  # Убираем пробелы в начале и конце
-    df.columns = df.columns.str.replace("\t", "")  # Убираем табуляции
-
-    # Проверим правильное название
-    if "ФИО" not in df.columns:
-        st.error("Ошибка: В таблице нет столбца 'ФИО'. Проверьте названия столбцов.")
+# Функция для загрузки данных из Google Sheets
+def load_data_from_google_sheets(student_name):
+    try:
+        sheet_url = "https://docs.google.com/spreadsheets/d/1BeXPi5LRSIj0xDjGZjey0VfBU08mnjJm/export?format=csv"
+        df = pd.read_csv(sheet_url)
+        df.columns = df.columns.str.strip()
+        
+        # Определяем столбец с ФИО
+        fio_column = next((col for col in df.columns if "ФИО" in col), None)
+        
+        if fio_column:
+            student_data = df[df[fio_column] == student_name]
+            if not student_data.empty:
+                return student_data.to_json(orient="records")
+        
         return None
-
-    student_data = df[df["ФИО"] == student_name]
-    
-    if student_data.empty:
+    except Exception as e:
+        st.error(f"Ошибка при загрузке данных из Google Sheets: {e}")
         return None
-    
-    student_data_json = student_data.to_json(orient="records")
-    return student_data_json
-
 
 # Функция для отправки данных через API ChatGPT
 def send_data_to_api(student_data, prompt):
@@ -113,14 +107,14 @@ with st.form("student_form"):
     submit_button = st.form_submit_button("Сформировать ПИР")
 
 if submit_button:
-    student_data = load_data_from_google_sheets("https://docs.google.com/spreadsheets/d/1BeXPi5LRSIj0xDjGZjey0VfBU08mnjJm/export?format=csv", name)
+    st.write("Загрузка данных из Google Sheets...")
+    student_data = load_data_from_google_sheets(name)
     
     if student_data is None:
         st.error("Ошибка: Данные ученика не найдены!")
     else:
         st.write("Данные найдены, отправляются на анализ...")
         
-        # Промпт для ChatGPT
         prompt = """
 Учащийся проходил обучение по различным темам. В столбцах приведены ожидания от обучения (цели), а в последней строке указано:
 - 1 = ученик достиг цели.
